@@ -1,12 +1,12 @@
 [project]
-name = "python-poetry-starter"
+name = "open-dictation"
 version = "0.1.0"
 description = ""
 authors = [{ name = "Fabio Colella", email = "fcole90@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
-dependencies = []
+dependencies = ["pywhispercpp (>=1.3.1,<2.0.0)"]
 
 [tool.poetry.requires-plugins]
 poethepoet = { version = "~0.34.0", extras = ["poetry_plugin"] }
