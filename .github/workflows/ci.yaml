@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  build_test_lint_typecheck:
+    strategy:
+      matrix:
+        os:
+        - windows-latest
+        - macos-latest
+        - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install poetry
+      run: pipx install poetry
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'poetry'
+    - run: poetry config --list
+
+    - name: Workaround for Windows CI for https://github.com/python-poetry/poetry/issues/10028
+      run: pipx inject poetry poethepoet[poetry_plugin]
+      if: runner.os == 'Windows'
+    
+    - run: poetry install
+    - run: poetry poe test
+    - run: poetry poe lint
+    - run: poetry poe typecheck
