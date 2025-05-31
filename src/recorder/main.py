@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 import numpy
 import sounddevice  # type: ignore
 import wavio as wavio  # type: ignore
@@ -20,7 +20,7 @@ def __change_dir_to_pkg_root() -> None:
 
 def record(duration: int, frequency: int = 44100, channels: int = 2):
     recording = cast(
-        numpy.ndarray[Any, numpy.dtype[numpy.float32]],
+        numpy.typing.NDArray[numpy.float32],
         sounddevice.rec(
             int(duration * frequency), samplerate=frequency, channels=channels
         ),
