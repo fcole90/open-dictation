@@ -18,7 +18,7 @@ def __change_dir_to_pkg_root() -> None:
     print(f"Changed working directory to: {__PKG_ROOT_DIR__}")
 
 
-def record(duration: int, frequency: int = 44100, channels: int = 2):
+def record(duration: int, frequency: int = 16000, channels: int = 2):
     recording = cast(
         numpy.typing.NDArray[numpy.float32],
         sounddevice.rec(
@@ -30,9 +30,9 @@ def record(duration: int, frequency: int = 44100, channels: int = 2):
 
 
 def main():
-    frequency = 44100
+    frequency = 16000
     duration = 5
-    sample_width = 2
+    channels = 2
 
     TEST_DATA_DIR = __PKG_ROOT_DIR__.joinpath("test_data")
 
@@ -49,7 +49,7 @@ def main():
         str(TEST_DATA_DIR.joinpath("voice_recording.wav")),
         recording,
         frequency,
-        sampwidth=sample_width,
+        sampwidth=channels,
     )
     print("Done")
 
