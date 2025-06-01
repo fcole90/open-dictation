@@ -44,9 +44,6 @@ reportUnknownMemberType = "none"
 reportUnknownModuleType = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
-[tool.poetry]
-packages = [{ include = "src" }]
-
 [tool.poetry.scripts]
 main = "src.main:main"
 recorder = "src.recorder.main:main"
