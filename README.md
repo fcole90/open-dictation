@@ -1,12 +1,6 @@
-# Opinionated Python project starter with batteries included [![.github/workflows/ci.yaml](https://github.com/fcole90/python-poetry-starter/actions/workflows/ci.yaml/badge.svg)](https://github.com/fcole90/python-poetry-starter/actions/workflows/ci.yaml)
+# Open Dictation
 
-This project is designed to be a quick-start for Python projects, providing a set of tools and configurations that make development easier. It includes:
-
-- Initial uv setup with local virtualenv and including poe task runner
-- Test setup with pytest
-- Linting setup with blake
-- Typechecking setup with pyright
-- Continuous integration with GitHub Actions
+A simple, open-source dictation tool to convert speech to text.
 
 ## Requirements
 
@@ -14,7 +8,7 @@ This project is designed to be a quick-start for Python projects, providing a se
 or
 - Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 
-uv can manage Python versions directly. To install Python 3.13 via uv: `uv python install 3.13`
+uv can manage Python versions directly. To install Python 3.14 via uv: `uv python install 3.14`
 
 ## Installation
 
@@ -24,19 +18,43 @@ uv sync
 
 After this step you may want to close and reopen your terminal or IDE to ensure that the uv-managed virtual environment is activated correctly.
 
-## Tests
+## Usage
+
+There are two main commands available:
+
+### Recording
+
+To record audio from your microphone:
+
+```sh
+uv run poe recorder
+```
+
+This will save the recording to a file.
+
+### Speech-to-text
+
+To transcribe an audio file to text:
+
+```sh
+uv run poe main <path_to_audio_file>
+```
+
+## Development
+
+### Tests
 
 ```sh
 uv run poe test
 ```
 
-## Linting
+### Linting
 
 ```sh
 uv run poe lint
 ```
 
-## Typechecking
+### Typechecking
 
 ```sh
 uv run poe typecheck
