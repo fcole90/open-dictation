@@ -5,32 +5,31 @@ description = ""
 authors = [{ name = "Fabio Colella", email = "fcole90@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.14,<4.0"
 dependencies = [
   "pywhispercpp (>=1.3.1,<2.0.0)",
   "sounddevice (>=0.5.2,<0.6.0)",
   "wavio (>=0.0.9,<0.0.10)",
 ]
 
-[tool.poetry.requires-plugins]
-poethepoet = { version = "~0.34.0", extras = ["poetry_plugin"] }
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.5"
-black = "^25.1.0"
-pyright = "^1.1.400"
+[dependency-groups]
+dev = ["poethepoet>=0.34.0", "pytest>=9.0", "black>=25.1.0", "pyright>=1.1.400"]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/open_dictation"]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-rootdir = "src"
-import-mode = "importlib"
+minversion = "9.0"
+addopts = "--import-mode=importlib"
+testpaths = ["src", "scripts"]
+python_files = ["*_test.py"]
 
 [tool.pyright]
-pythonVersion = "3.12"
+pythonVersion = "3.14"
 typeCheckingMode = "strict"
 useLibraryCodeForTypes = true
 exclude = ["**/__pycache__", "src/typings"]
@@ -44,9 +43,9 @@ reportUnknownMemberType = "none"
 reportUnknownModuleType = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
-[tool.poetry.scripts]
-main = "src.main:main"
-recorder = "src.recorder.main:main"
+[project.scripts]
+main = "src.open_dictation.main:main"
+recorder = "src.open_dictation.recorder.main:main"
 
 [tool.poe.tasks]
 test = "python -m pytest"
