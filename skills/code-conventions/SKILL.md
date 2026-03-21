@@ -109,10 +109,10 @@ Help the agent work within this project in a way that respects its structure, ty
 
 When proposing changes, the agent should keep these commands in mind:
 
-- `poe test` → run pytest tests.
-- `poe lint` → run Black in check mode.
-- `poe lint-fix` → format code with Black.
-- `poe typecheck` → run Pyright on `./src`.
+- `uv run poe test` → run pytest tests.
+- `uv run poe lint` → run Black in check mode.
+- `uv run poe lint-fix` → format code with Black.
+- `uv run poe typecheck` → run Pyright on `./src`.
 
 ## General guidance for the agent
 
