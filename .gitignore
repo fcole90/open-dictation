@@ -1,5 +1,6 @@
-# Task management folder
-current/
+# Agent only dirs
+.agents/tasks
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -18,10 +18,38 @@
   "python.languageServer": "Pylance",
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
+  // AI settings
+  "chat.instructionsFilesLocations": {
+    "skills": true
+  },
+  // Workaround to prevent reading access to secret folders:
+  // we edit the file association by folders, and then forbid such file-type
+  "files.associations": {
+    ".env*": "secret-text",
+    "**/config/secrets/**": "secret-text",
+    "**/.aiexclude": "secret-text"
+  },
+  // This setting exists: https://code.visualstudio.com/docs/copilot/reference/copilot-settings#_code-editing-settings
+  "github.copilot.enable": {
+    "*": true,
+    "secret-text": false,
+  },
+  // Autoapproved file editing
+  "chat.tools.edits.autoApprove": {
+    // Note: This setting now takes an object mapping file patterns to booleans
+    "**/*.{ts,tsx,jsx,js,mjs,cjs,toml,yaml,yml,py,go,rs,cpp,h,css,html,md}": true,
+    // PROTECT YOUR SENSITIVE FILES
+    "**/.env*": false,
+    "**/config/secrets/**": false,
+    "**/*.{pem,key,pub}": false,
+    // Prevent unsupervised editing of files like this
+    ".vscode": false,
+    "**/.aiexclude": false,
+    "skills": false
+  },
+  // Running commands
   "chat.tools.terminal.autoApprove": {
     // Explicitly allow your core workflow commands
-    "git log": true,
-    "git status": true,
     "/^git (log|status).*/": true,
     "/^uv run poe (lint|test|typecheck).*/": true,
     // Explicitly block dangerous commands (Safety first)
@@ -31,13 +59,4 @@
     "curl": false,
     "wget": false
   },
-  "chat.tools.edits.autoApprove": {
-    // Note: This setting now takes an object mapping file patterns to booleans
-    "**/*.{ts,tsx,jsx,js,mjs,cjs,toml,yaml,yml,py,go,rs,cpp,h,css,html,md}": true,
-    // PROTECT YOUR SENSITIVE FILES
-    "**/.env*": false,
-    "**/config/secrets/**": false,
-    "**/.aiexclude": false,
-    "**/*.{pem,key,pub}": false
-  }
 }
