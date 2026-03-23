@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     )
 
     HOTKEY: str = "f4"
+    MODEL_SIZE: str = "base.en"
 
 
 settings = Settings()
