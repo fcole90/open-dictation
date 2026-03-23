@@ -1,17 +1,18 @@
 from pynput import keyboard
 from typing import Callable, Optional
 
+from open_dictation.config import settings
+
 
 class HotkeyListener:
     def __init__(
         self,
         on_press_callback: Callable[[], None],
         on_release_callback: Callable[[], None],
-        hotkey_str: str = "f4",
     ):
         self._on_press_callback = on_press_callback
         self._on_release_callback = on_release_callback
-        self.hotkey = self._parse_hotkey(hotkey_str)
+        self.hotkey = self._parse_hotkey(settings.HOTKEY)
         self._listener = keyboard.Listener(
             on_press=self._on_press, on_release=self._on_release
         )

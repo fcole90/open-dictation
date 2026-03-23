@@ -34,7 +34,7 @@ class OpenDictationApp:
             print("No audio recorded.")
 
     def start(self):
-        print("Open Dictation started. Press and hold F4 to dictate.")
+        print("Open Dictation started.")
         self._running = True
         self.hotkey_listener.start()
         self.tray_icon.start()
