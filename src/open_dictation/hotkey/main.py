@@ -2,6 +2,7 @@ from pynput import keyboard
 from typing import Callable, Optional
 
 from open_dictation.config import settings
+from open_dictation.logger import logger
 
 
 class HotkeyListener:
@@ -13,16 +14,21 @@ class HotkeyListener:
         self._on_press_callback = on_press_callback
         self._on_release_callback = on_release_callback
         self.hotkey = self._parse_hotkey(settings.HOTKEY)
-        self._listener = keyboard.Listener(
-            on_press=self._on_press, on_release=self._on_release
-        )
+        if self.hotkey:
+            self._listener = keyboard.Listener(
+                on_press=self._on_press, on_release=self._on_release
+            )
         self._hotkey_pressed = False
 
-    def _parse_hotkey(self, hotkey_str: str) -> keyboard.Key:
-        key = getattr(keyboard.Key, hotkey_str, None)
-        if key is None:
-            raise ValueError(f"Unsupported hotkey: {hotkey_str}")
-        return key
+    def _parse_hotkey(self, hotkey_str: str) -> Optional[keyboard.Key]:
+        try:
+            key = getattr(keyboard.Key, hotkey_str, None)
+            if key is None:
+                raise ValueError(f"Unsupported hotkey: {hotkey_str}")
+            return key
+        except (ValueError, AttributeError) as e:
+            logger.error(f"Invalid hotkey '{hotkey_str}': {e}")
+            return None
 
     def _on_press(self, key: Optional[keyboard.Key | keyboard.KeyCode]):
         if key == self.hotkey and not self._hotkey_pressed:
@@ -37,8 +43,10 @@ class HotkeyListener:
 
     def start(self):
         """Starts the hotkey listener in a non-blocking way."""
-        self._listener.start()
+        if hasattr(self, "_listener"):
+            self._listener.start()
 
     def stop(self):
         """Stops the hotkey listener."""
-        self._listener.stop()
+        if hasattr(self, "_listener"):
+            self._listener.stop()

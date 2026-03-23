@@ -26,14 +26,20 @@ class OpenDictationApp:
 
     def _on_hotkey_release(self):
         logger.info("Recording stopped...")
-        audio_data = self.recorder.stop()
-        if audio_data.size > 0:
-            logger.info("Transcribing...")
-            text = self.stt.transcribe(audio_data.flatten())
-            logger.info(f"Transcribed: {text}")
-            self.injector.inject(text)
-        else:
-            logger.info("No audio recorded.")
+        try:
+            audio_data = self.recorder.stop()
+            if audio_data.size > 0:
+                logger.info("Transcribing...")
+                text = self.stt.transcribe(audio_data.flatten())
+                if text:
+                    logger.info(f"Transcribed: {text}")
+                    self.injector.inject(text)
+                else:
+                    logger.warning("Transcription failed or produced empty text.")
+            else:
+                logger.info("No audio recorded.")
+        except Exception as e:
+            logger.error(f"An error occurred during transcription or injection: {e}")
 
     def start(self):
         logger.info("Open Dictation started.")
