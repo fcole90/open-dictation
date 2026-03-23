@@ -7,9 +7,12 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.14,<4.0"
 dependencies = [
-  "pywhispercpp (>=1.3.1,<2.0.0)",
-  "sounddevice (>=0.5.2,<0.6.0)",
-  "wavio (>=0.0.9,<0.0.10)",
+  "sounddevice>=0.4.6",
+  "numpy>=1.26.4",
+  "faster-whisper>=1.0.3",
+  "pynput>=1.7.6",
+  "pyperclip>=1.9.0",
+  "pystray>=0.19.0",
 ]
 
 [dependency-groups]
@@ -44,8 +47,8 @@ reportUnknownModuleType = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [project.scripts]
-main = "src.open_dictation.main:main"
-recorder = "src.open_dictation.recorder.main:main"
+main = "open_dictation.main:main"
+recorder = "open_dictation.recording.main:main"
 
 [tool.poe.tasks]
 test = "python -m pytest"

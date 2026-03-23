@@ -1,33 +1,16 @@
-from os import path
-from pathlib import Path
-from pywhispercpp.model import Model  # type: ignore
-
-__CURRENT_DIR__ = Path(__file__).parent.resolve()
-__PKG_ROOT_DIR__ = __CURRENT_DIR__.resolve()
+from faster_whisper import WhisperModel
+import numpy as np
 
 
-def get_transcription(model_name: str, audio_path: str):
-    model = Model(model_name)
-    return model.transcribe(audio_path)
+class SpeechToText:
+    def __init__(self, model_name: str = "base.en", device: str = "cpu"):
+        self.model = WhisperModel(model_name, device=device, compute_type="int8")
 
-
-def main():
-    segments = get_transcription(
-        "base.en",
-        path.join(__PKG_ROOT_DIR__, "test_data", "Armstrong_Small_Step_16K.wav"),
-    )
-    for segment in segments:
-        print(segment.text)
-
-    segments = get_transcription(
-        "base.en",
-        path.join(
-            __PKG_ROOT_DIR__, "..", "recording", "test_data", "voice_recording.wav"
-        ),
-    )
-    for segment in segments:
-        print(segment.text)
-
-
-if __name__ == "__main__":
-    main()
+    def transcribe(
+        self, audio: np.ndarray[np.float32, np.dtype[np.float32]]
+    ) -> str:
+        """
+        Transcribes an audio waveform and returns the full text.
+        """
+        segments, _ = self.model.transcribe(audio, beam_size=5)
+        return " ".join([segment.text for segment in segments])
