@@ -1,5 +1,4 @@
-from pystray.icon import Icon  # type: ignore
-from pystray import Menu, MenuItem  # type: ignore
+from pystray import Icon, Menu, MenuItem  # type: ignore
 from PIL import Image
 from typing import Callable
 
@@ -10,12 +9,12 @@ class TrayIcon:
     def __init__(self, name: str, on_quit: Callable[[], None]):
         self._on_quit = on_quit
         self._status = "Idle"
-        self._icon: Icon = self._create_icon(name)
+        self._icon: Icon = self._create_icon(name)  # type: ignore[reportInvalidTypeForm]
 
     def _get_status_text(self) -> str:
         return f"Status: {self._status}"
 
-    def _create_icon(self, name: str) -> Icon:
+    def _create_icon(self, name: str) -> Icon:  # type: ignore[reportInvalidTypeForm]
         image = Image.new("RGB", (64, 64), "black")
         menu = Menu(
             MenuItem(self._get_status_text, None, enabled=False),
