@@ -59,7 +59,3 @@ class OpenDictationApp:
 def main() -> None:
     app = OpenDictationApp()
     app.start()
-
-
-if __name__ == "__main__":
-    main()
