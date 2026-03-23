@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     HOTKEY: str = "f4"
     MODEL_SIZE: str = "base.en"
+    COMPUTE_DEVICE: str = "cpu"
 
 
 settings = Settings()

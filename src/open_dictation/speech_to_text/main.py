@@ -6,9 +6,9 @@ from open_dictation.config import settings
 
 
 class SpeechToText:
-    def __init__(self, device: str = "cpu"):
+    def __init__(self):
         self.model = WhisperModel(
-            settings.MODEL_SIZE, device=device, compute_type="int8"
+            settings.MODEL_SIZE, device=settings.COMPUTE_DEVICE, compute_type="int8"
         )
 
     def transcribe(self, audio: NDArray[np.float32]) -> str:
