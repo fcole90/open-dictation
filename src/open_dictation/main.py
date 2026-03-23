@@ -22,10 +22,12 @@ class OpenDictationApp:
 
     def _on_hotkey_press(self):
         logger.info("Recording started...")
+        self.tray_icon.set_status("Recording")
         self.recorder.start()
 
     def _on_hotkey_release(self):
         logger.info("Recording stopped...")
+        self.tray_icon.set_status("Transcribing")
         try:
             audio_data = self.recorder.stop()
             if audio_data.size > 0:
@@ -40,6 +42,8 @@ class OpenDictationApp:
                 logger.info("No audio recorded.")
         except Exception as e:
             logger.error(f"An error occurred during transcription or injection: {e}")
+        finally:
+            self.tray_icon.set_status("Idle")
 
     def start(self):
         logger.info("Open Dictation started.")
