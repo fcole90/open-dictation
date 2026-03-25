@@ -49,5 +49,9 @@ class TrayIcon:
         self._icon.run_detached()
 
     def stop(self) -> None:
-        """Stops the tray icon."""
-        self._icon.stop()
+        """Stops the tray icon and handles cleanup."""
+        try:
+            self._icon.stop()
+        except AttributeError:
+            # pystray may raise AttributeError during cleanup in some cases
+            pass
