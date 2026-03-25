@@ -41,9 +41,8 @@ reportUnknownVariableType = "warning"
 reportUnknownArgumentType = "none"
 reportUnknownParameterType = "warning"
 reportUnknownLambdaType = "warning"
-reportUnknownMemberAccess = "warning"
 reportUnknownMemberType = "none"
-reportUnknownModuleType = "warning"
+reportMissingTypeStubs = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [project.scripts]
