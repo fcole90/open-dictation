@@ -13,15 +13,52 @@ class TestHotkeyListenerParsing:
     ):
         """Test parsing a valid hotkey like 'f4'."""
         mock_settings.HOTKEY = "f4"
-        mock_key = MagicMock()
-        mock_keyboard.Key.f4 = mock_key
+        mock_keyboard.Key.f4 = MagicMock()
 
         listener = HotkeyListener(
             on_press_callback=lambda: None,
             on_release_callback=lambda: None,
         )
 
-        assert listener.hotkey == mock_key
+        assert listener.hotkey_spec is not None
+        assert listener.hotkey_spec["main_key"] == "f4"
+        assert listener.hotkey_spec["modifiers"] == set()
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_parse_modifier_hotkey(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test parsing a hotkey with modifiers like 'shift+f5'."""
+        mock_settings.HOTKEY = "shift+f5"
+        mock_keyboard.Key.f5 = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=lambda: None,
+            on_release_callback=lambda: None,
+        )
+
+        assert listener.hotkey_spec is not None
+        assert listener.hotkey_spec["main_key"] == "f5"
+        assert listener.hotkey_spec["modifiers"] == {"shift"}
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_parse_multiple_modifiers(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test parsing hotkey with multiple modifiers like 'ctrl+shift+a'."""
+        mock_settings.HOTKEY = "ctrl+shift+a"
+        mock_keyboard.Key.a = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=lambda: None,
+            on_release_callback=lambda: None,
+        )
+
+        assert listener.hotkey_spec is not None
+        assert listener.hotkey_spec["main_key"] == "a"
+        assert listener.hotkey_spec["modifiers"] == {"ctrl", "shift"}
 
     @patch("open_dictation.hotkey.main.settings")
     @patch("open_dictation.hotkey.main.keyboard")
@@ -39,7 +76,24 @@ class TestHotkeyListenerParsing:
                 on_release_callback=lambda: None,
             )
 
-        assert listener.hotkey is None
+        assert listener.hotkey_spec is None
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_parse_invalid_modifier(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test parsing hotkey with invalid modifier."""
+        mock_settings.HOTKEY = "invalid_mod+f5"
+        mock_keyboard.Key.f5 = MagicMock()
+
+        with patch("open_dictation.hotkey.main.logger"):
+            listener = HotkeyListener(
+                on_press_callback=lambda: None,
+                on_release_callback=lambda: None,
+            )
+
+        assert listener.hotkey_spec is None
 
     @patch("open_dictation.hotkey.main.settings")
     @patch("open_dictation.hotkey.main.keyboard")
@@ -81,6 +135,34 @@ class TestHotkeyListenerCallbacks:
         )
 
         listener._on_press(mock_key)  # type: ignore[reportPrivateUsage]
+
+        press_callback.assert_called_once()
+        release_callback.assert_not_called()
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_on_press_with_modifiers(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test that pressing hotkey with required modifiers invokes callback."""
+        mock_settings.HOTKEY = "shift+f5"
+        mock_shift = MagicMock()
+        mock_key_f5 = MagicMock()
+        mock_keyboard.Key.shift = mock_shift
+        mock_keyboard.Key.f5 = mock_key_f5
+
+        press_callback = MagicMock()
+        release_callback = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=press_callback,
+            on_release_callback=release_callback,
+        )
+
+        # First press shift
+        listener._on_press(mock_shift)  # type: ignore[reportPrivateUsage]
+        # Then press f5
+        listener._on_press(mock_key_f5)  # type: ignore[reportPrivateUsage]
 
         press_callback.assert_called_once()
         release_callback.assert_not_called()
@@ -194,6 +276,36 @@ class TestHotkeyListenerDebouncing:
         assert press_callback.call_count == 2
         assert release_callback.call_count == 1
 
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_modifier_release_prevents_main_key_callback(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test that releasing modifier prevents main key from triggering callback."""
+        mock_settings.HOTKEY = "shift+f5"
+        mock_shift = MagicMock()
+        mock_key_f5 = MagicMock()
+        mock_keyboard.Key.shift = mock_shift
+        mock_keyboard.Key.f5 = mock_key_f5
+
+        press_callback = MagicMock()
+        release_callback = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=press_callback,
+            on_release_callback=release_callback,
+        )
+
+        # Press shift
+        listener._on_press(mock_shift)  # type: ignore[reportPrivateUsage]
+        # Release shift without pressing f5
+        listener._on_release(mock_shift)  # type: ignore[reportPrivateUsage]
+        # Now press f5 (without shift)
+        listener._on_press(mock_key_f5)  # type: ignore[reportPrivateUsage]
+
+        press_callback.assert_not_called()
+        release_callback.assert_not_called()
+
 
 class TestHotkeyListenerWrongKey:
     """Test behavior when non-hotkey is pressed."""
@@ -218,6 +330,31 @@ class TestHotkeyListenerWrongKey:
         )
 
         # Press wrong key
+        listener._on_press(mock_key_f5)  # type: ignore[reportPrivateUsage]
+
+        press_callback.assert_not_called()
+        release_callback.assert_not_called()
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_missing_modifier_prevents_callback(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test that main key without required modifier doesn't invoke callback."""
+        mock_settings.HOTKEY = "shift+f5"
+        mock_key_f5 = MagicMock()
+        mock_keyboard.Key.f5 = mock_key_f5
+        mock_keyboard.Key.shift = MagicMock()
+
+        press_callback = MagicMock()
+        release_callback = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=press_callback,
+            on_release_callback=release_callback,
+        )
+
+        # Press f5 without shift
         listener._on_press(mock_key_f5)  # type: ignore[reportPrivateUsage]
 
         press_callback.assert_not_called()
