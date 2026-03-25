@@ -47,23 +47,44 @@ class HotkeyListener:
             logger.error(f"Invalid hotkey '{hotkey_str}': {e}")
             return None
 
+    def _identify_modifier(
+        self, key: Optional[keyboard.Key | keyboard.KeyCode]
+    ) -> Optional[str]:
+        """Identify which modifier a key represents, or None if not a modifier."""
+        if key is None:
+            return None
+
+        if (hasattr(keyboard.Key, "shift") and key == keyboard.Key.shift) or (
+            hasattr(keyboard.Key, "shift_r") and key == keyboard.Key.shift_r
+        ):
+            return "shift"
+        elif (hasattr(keyboard.Key, "ctrl") and key == keyboard.Key.ctrl) or (
+            hasattr(keyboard.Key, "ctrl_r") and key == keyboard.Key.ctrl_r
+        ):
+            return "ctrl"
+        elif (hasattr(keyboard.Key, "alt") and key == keyboard.Key.alt) or (
+            hasattr(keyboard.Key, "alt_r") and key == keyboard.Key.alt_r
+        ):
+            return "alt"
+        return None
+
+    def _update_modifier_state(
+        self, key: Optional[keyboard.Key | keyboard.KeyCode], add: bool = True
+    ) -> None:
+        """Track or untrack a modifier key press/release."""
+        modifier = self._identify_modifier(key)
+        if modifier:
+            if add:
+                self._modifiers_pressed.add(modifier)
+            else:
+                self._modifiers_pressed.discard(modifier)
+
     def _on_press(self, key: Optional[keyboard.Key | keyboard.KeyCode]):
         if key is None or self.hotkey_spec is None:
             return
 
         # Track modifier keys
-        if hasattr(keyboard.Key, "shift") and key == keyboard.Key.shift:
-            self._modifiers_pressed.add("shift")
-        elif hasattr(keyboard.Key, "shift_r") and key == keyboard.Key.shift_r:
-            self._modifiers_pressed.add("shift")
-        elif hasattr(keyboard.Key, "ctrl") and key == keyboard.Key.ctrl:
-            self._modifiers_pressed.add("ctrl")
-        elif hasattr(keyboard.Key, "ctrl_r") and key == keyboard.Key.ctrl_r:
-            self._modifiers_pressed.add("ctrl")
-        elif (hasattr(keyboard.Key, "alt") and key == keyboard.Key.alt) or (
-            hasattr(keyboard.Key, "alt_r") and key == keyboard.Key.alt_r
-        ):
-            self._modifiers_pressed.add("alt")
+        self._update_modifier_state(key, add=True)
 
         # Check if main key matches
         main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
@@ -80,18 +101,7 @@ class HotkeyListener:
             return
 
         # Track modifier key releases
-        if hasattr(keyboard.Key, "shift") and key == keyboard.Key.shift:
-            self._modifiers_pressed.discard("shift")
-        elif hasattr(keyboard.Key, "shift_r") and key == keyboard.Key.shift_r:
-            self._modifiers_pressed.discard("shift")
-        elif hasattr(keyboard.Key, "ctrl") and key == keyboard.Key.ctrl:
-            self._modifiers_pressed.discard("ctrl")
-        elif hasattr(keyboard.Key, "ctrl_r") and key == keyboard.Key.ctrl_r:
-            self._modifiers_pressed.discard("ctrl")
-        elif (hasattr(keyboard.Key, "alt") and key == keyboard.Key.alt) or (
-            hasattr(keyboard.Key, "alt_r") and key == keyboard.Key.alt_r
-        ):
-            self._modifiers_pressed.discard("alt")
+        self._update_modifier_state(key, add=False)
 
         # Check if main key was released
         main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
