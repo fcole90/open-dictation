@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from pynput import keyboard
 
 from open_dictation.hotkey.main import HotkeyListener
 
@@ -420,3 +421,154 @@ class TestHotkeyListenerLifecycle:
         # Should not raise
         listener.start()
         listener.stop()
+
+
+class TestHotkeyListenerAlphanumericKeys:
+    """Test hotkey support for alphanumeric characters like 'a', 'h', etc."""
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_parse_alphanumeric_hotkey(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test parsing a simple alphanumeric hotkey like 'a'."""
+        mock_settings.HOTKEY = "a"
+        # Configure keyboard.Key to not have single letter attributes
+        mock_keyboard.Key = MagicMock(spec=["f1", "f2", "f3", "f4", "f5"])
+
+        listener = HotkeyListener(
+            on_press_callback=lambda: None,
+            on_release_callback=lambda: None,
+        )
+
+        assert listener.hotkey_spec is not None
+        assert listener.hotkey_spec["main_key"] == "a"
+        assert listener.hotkey_spec["modifiers"] == set()
+        assert listener.hotkey_spec["is_special_key"] is False
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_parse_alphanumeric_with_single_modifier(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test parsing alphanumeric hotkey with single modifier like 'ctrl+h'."""
+        mock_settings.HOTKEY = "ctrl+h"
+        # Configure keyboard.Key to not have single letter attributes
+        mock_keyboard.Key = MagicMock(spec=["f1", "f2", "f3", "f4", "f5"])
+
+        listener = HotkeyListener(
+            on_press_callback=lambda: None,
+            on_release_callback=lambda: None,
+        )
+
+        assert listener.hotkey_spec is not None
+        assert listener.hotkey_spec["main_key"] == "h"
+        assert listener.hotkey_spec["modifiers"] == {"ctrl"}
+        assert listener.hotkey_spec["is_special_key"] is False
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_parse_alphanumeric_with_multiple_modifiers(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test parsing alphanumeric hotkey with multiple modifiers like 'ctrl+alt+h'."""
+        mock_settings.HOTKEY = "ctrl+alt+h"
+        # Configure keyboard.Key to not have single letter attributes
+        mock_keyboard.Key = MagicMock(spec=["f1", "f2", "f3", "f4", "f5"])
+
+        listener = HotkeyListener(
+            on_press_callback=lambda: None,
+            on_release_callback=lambda: None,
+        )
+
+        assert listener.hotkey_spec is not None
+        assert listener.hotkey_spec["main_key"] == "h"
+        assert listener.hotkey_spec["modifiers"] == {"ctrl", "alt"}
+        assert listener.hotkey_spec["is_special_key"] is False
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_on_press_alphanumeric_key(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test that pressing an alphanumeric key invokes callback via KeyCode char."""
+        mock_settings.HOTKEY = "h"
+        mock_keyboard.Key = MagicMock(spec=["f1", "f2", "f3", "f4", "f5"])
+        mock_keyboard.KeyCode = keyboard.KeyCode
+        mock_key = keyboard.KeyCode(char="h")
+
+        press_callback = MagicMock()
+        release_callback = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=press_callback,
+            on_release_callback=release_callback,
+        )
+
+        listener._on_press(mock_key)  # type: ignore[reportPrivateUsage]
+
+        press_callback.assert_called_once()
+        release_callback.assert_not_called()
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_on_press_alphanumeric_with_modifiers(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test alphanumeric key with modifiers via KeyCode."""
+        mock_settings.HOTKEY = "ctrl+alt+h"
+        mock_keyboard.Key = MagicMock(
+            spec=["f1", "f2", "f3", "f4", "f5", "ctrl", "ctrl_r", "alt", "alt_r"]
+        )
+        mock_keyboard.KeyCode = keyboard.KeyCode
+        mock_ctrl = MagicMock()
+        mock_alt = MagicMock()
+        mock_key_h = keyboard.KeyCode(char="h")
+        mock_keyboard.Key.ctrl = mock_ctrl
+        mock_keyboard.Key.ctrl_r = MagicMock()
+        mock_keyboard.Key.alt = mock_alt
+        mock_keyboard.Key.alt_r = MagicMock()
+
+        press_callback = MagicMock()
+        release_callback = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=press_callback,
+            on_release_callback=release_callback,
+        )
+
+        # Press ctrl
+        listener._on_press(mock_ctrl)  # type: ignore[reportPrivateUsage]
+        # Press alt
+        listener._on_press(mock_alt)  # type: ignore[reportPrivateUsage]
+        # Press h
+        listener._on_press(mock_key_h)  # type: ignore[reportPrivateUsage]
+
+        press_callback.assert_called_once()
+        release_callback.assert_not_called()
+
+    @patch("open_dictation.hotkey.main.settings")
+    @patch("open_dictation.hotkey.main.keyboard")
+    def test_on_release_alphanumeric_key(
+        self, mock_keyboard: MagicMock, mock_settings: MagicMock
+    ):
+        """Test releasing an alphanumeric key."""
+        mock_settings.HOTKEY = "h"
+        mock_keyboard.Key = MagicMock(spec=["f1", "f2", "f3", "f4", "f5"])
+        mock_keyboard.KeyCode = keyboard.KeyCode
+        mock_key = keyboard.KeyCode(char="h")
+
+        press_callback = MagicMock()
+        release_callback = MagicMock()
+
+        listener = HotkeyListener(
+            on_press_callback=press_callback,
+            on_release_callback=release_callback,
+        )
+
+        # Press then release
+        listener._on_press(mock_key)  # type: ignore[reportPrivateUsage]
+        listener._on_release(mock_key)  # type: ignore[reportPrivateUsage]
+
+        press_callback.assert_called_once()
+        release_callback.assert_called_once()

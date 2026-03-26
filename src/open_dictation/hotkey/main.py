@@ -22,14 +22,17 @@ class HotkeyListener:
         self._modifiers_pressed: set[str] = set()
 
     def _parse_hotkey(self, hotkey_str: str) -> Optional[dict[str, Any]]:
-        """Parse hotkey string like 'shift+f5' or 'f4' into modifiers and main key."""
+        """Parse hotkey string like 'shift+f5', 'ctrl+alt+h', or 'f4' into modifiers and main key."""
         try:
             parts = hotkey_str.lower().split("+")
             main_key = parts[-1]
             modifiers: set[str] = set(parts[:-1]) if len(parts) > 1 else set()
 
-            # Verify main key exists
-            if not hasattr(keyboard.Key, main_key):
+            # Verify main key is either a special key (on keyboard.Key) or single alphanumeric
+            is_special_key = hasattr(keyboard.Key, main_key)
+            is_alphanumeric = len(main_key) == 1 and main_key.isalnum()
+
+            if not (is_special_key or is_alphanumeric):
                 raise ValueError(f"Unsupported hotkey: {hotkey_str}")
 
             # Verify modifiers are valid
@@ -42,6 +45,7 @@ class HotkeyListener:
                 "main_key": main_key,
                 "modifiers": modifiers,
                 "original": hotkey_str,
+                "is_special_key": is_special_key,
             }
         except (ValueError, AttributeError) as e:
             logger.error(f"Invalid hotkey '{hotkey_str}': {e}")
@@ -87,9 +91,18 @@ class HotkeyListener:
         self._update_modifier_state(key, add=True)
 
         # Check if main key matches
-        main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
+        key_matches = False
+        if self.hotkey_spec["is_special_key"]:
+            # Special key like F1-F12
+            main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
+            key_matches = key == main_key_attr
+        else:
+            # Alphanumeric key - check KeyCode char
+            if isinstance(key, keyboard.KeyCode) and key.char is not None:
+                key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+
         if (
-            key == main_key_attr
+            key_matches
             and self._modifiers_pressed == self.hotkey_spec["modifiers"]
             and not self._hotkey_pressed
         ):
@@ -104,11 +117,19 @@ class HotkeyListener:
         self._update_modifier_state(key, add=False)
 
         # Check if main key was released
-        main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
-        if key == main_key_attr:
-            if self._hotkey_pressed:
-                self._hotkey_pressed = False
-                self._on_release_callback()
+        key_matches = False
+        if self.hotkey_spec["is_special_key"]:
+            # Special key like F1-F12
+            main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
+            key_matches = key == main_key_attr
+        else:
+            # Alphanumeric key - check KeyCode char
+            if isinstance(key, keyboard.KeyCode) and key.char is not None:
+                key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+
+        if key_matches and self._hotkey_pressed:
+            self._hotkey_pressed = False
+            self._on_release_callback()
 
     def start(self):
         """Starts the hotkey listener in a non-blocking way."""
