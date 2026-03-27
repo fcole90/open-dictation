@@ -78,10 +78,16 @@ class HotkeyListener:
         """Track or untrack a modifier key press/release."""
         modifier = self._identify_modifier(key)
         if modifier:
+            old_state = self._modifiers_pressed.copy()
             if add:
                 self._modifiers_pressed.add(modifier)
             else:
                 self._modifiers_pressed.discard(modifier)
+            if old_state != self._modifiers_pressed:
+                logger.debug(
+                    f"Modifiers changed: {old_state} → {self._modifiers_pressed} "
+                    f"(action={'added' if add else 'removed'} {modifier})"
+                )
 
     def _on_press(self, key: Optional[keyboard.Key | keyboard.KeyCode]):
         if key is None or self.hotkey_spec is None:
@@ -89,6 +95,20 @@ class HotkeyListener:
 
         # Track modifier keys
         self._update_modifier_state(key, add=True)
+
+        # Debug logging
+        try:
+            if isinstance(key, keyboard.KeyCode) and key.char is not None:
+                key_info = f"KeyCode(char={key.char})"
+            else:
+                key_info = str(key)
+        except Exception:
+            key_info = str(key)
+
+        logger.debug(
+            f"Press: {key_info}, modifiers={self._modifiers_pressed}, "
+            f"expected={self.hotkey_spec['modifiers']}"
+        )
 
         # Check if main key matches
         key_matches = False
@@ -98,14 +118,22 @@ class HotkeyListener:
             key_matches = key == main_key_attr
         else:
             # Alphanumeric key - check KeyCode char
-            if isinstance(key, keyboard.KeyCode) and key.char is not None:
-                key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+            try:
+                if isinstance(key, keyboard.KeyCode) and key.char is not None:
+                    key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+            except Exception:
+                pass
 
         if (
             key_matches
             and self._modifiers_pressed == self.hotkey_spec["modifiers"]
             and not self._hotkey_pressed
         ):
+            logger.info(
+                f"Hotkey '{self.hotkey_spec['original']}' triggered: "
+                f"main_key={self.hotkey_spec['main_key']}, "
+                f"modifiers={self.hotkey_spec['modifiers']}"
+            )
             self._hotkey_pressed = True
             self._on_press_callback()
 
@@ -124,10 +152,14 @@ class HotkeyListener:
             key_matches = key == main_key_attr
         else:
             # Alphanumeric key - check KeyCode char
-            if isinstance(key, keyboard.KeyCode) and key.char is not None:
-                key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+            try:
+                if isinstance(key, keyboard.KeyCode) and key.char is not None:
+                    key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+            except Exception:
+                pass
 
         if key_matches and self._hotkey_pressed:
+            logger.debug(f"Hotkey '{self.hotkey_spec['original']}' released")
             self._hotkey_pressed = False
             self._on_release_callback()
 
