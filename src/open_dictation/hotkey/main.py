@@ -58,16 +58,22 @@ class HotkeyListener:
         if key is None:
             return None
 
-        if (hasattr(keyboard.Key, "shift") and key == keyboard.Key.shift) or (
-            hasattr(keyboard.Key, "shift_r") and key == keyboard.Key.shift_r
+        if (
+            (hasattr(keyboard.Key, "shift") and key == keyboard.Key.shift)
+            or (hasattr(keyboard.Key, "shift_l") and key == keyboard.Key.shift_l)
+            or (hasattr(keyboard.Key, "shift_r") and key == keyboard.Key.shift_r)
         ):
             return "shift"
-        elif (hasattr(keyboard.Key, "ctrl") and key == keyboard.Key.ctrl) or (
-            hasattr(keyboard.Key, "ctrl_r") and key == keyboard.Key.ctrl_r
+        elif (
+            (hasattr(keyboard.Key, "ctrl") and key == keyboard.Key.ctrl)
+            or (hasattr(keyboard.Key, "ctrl_l") and key == keyboard.Key.ctrl_l)
+            or (hasattr(keyboard.Key, "ctrl_r") and key == keyboard.Key.ctrl_r)
         ):
             return "ctrl"
-        elif (hasattr(keyboard.Key, "alt") and key == keyboard.Key.alt) or (
-            hasattr(keyboard.Key, "alt_r") and key == keyboard.Key.alt_r
+        elif (
+            (hasattr(keyboard.Key, "alt") and key == keyboard.Key.alt)
+            or (hasattr(keyboard.Key, "alt_l") and key == keyboard.Key.alt_l)
+            or (hasattr(keyboard.Key, "alt_r") and key == keyboard.Key.alt_r)
         ):
             return "alt"
         return None
@@ -117,10 +123,18 @@ class HotkeyListener:
             main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
             key_matches = key == main_key_attr
         else:
-            # Alphanumeric key - check KeyCode char
+            # Alphanumeric key - check KeyCode char or vk
             try:
-                if isinstance(key, keyboard.KeyCode) and key.char is not None:
-                    key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+                if isinstance(key, keyboard.KeyCode):
+                    if key.char:
+                        key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+                    elif key.vk is not None:
+                        try:
+                            key_matches = (
+                                chr(key.vk).lower() == self.hotkey_spec["main_key"]
+                            )
+                        except Exception:
+                            key_matches = False
             except Exception:
                 pass
 
@@ -151,10 +165,18 @@ class HotkeyListener:
             main_key_attr = getattr(keyboard.Key, self.hotkey_spec["main_key"], None)
             key_matches = key == main_key_attr
         else:
-            # Alphanumeric key - check KeyCode char
+            # Alphanumeric key - check KeyCode char or vk
             try:
-                if isinstance(key, keyboard.KeyCode) and key.char is not None:
-                    key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+                if isinstance(key, keyboard.KeyCode):
+                    if key.char:
+                        key_matches = key.char.lower() == self.hotkey_spec["main_key"]
+                    elif key.vk is not None:
+                        try:
+                            key_matches = (
+                                chr(key.vk).lower() == self.hotkey_spec["main_key"]
+                            )
+                        except Exception:
+                            key_matches = False
             except Exception:
                 pass
 

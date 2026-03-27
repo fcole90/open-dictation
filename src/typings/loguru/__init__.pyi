@@ -1,6 +1,6 @@
 """Type stubs for loguru module."""
 
-from typing import Any, Callable, Optional, Protocol
+from typing import Any, Optional
 from contextlib import contextmanager
 
 class Logger:

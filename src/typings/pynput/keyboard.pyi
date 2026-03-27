@@ -6,10 +6,13 @@ class Key:
     """Enumeration of special keys."""
 
     shift: Key
+    shift_l: Key
     shift_r: Key
     ctrl: Key
+    ctrl_l: Key
     ctrl_r: Key
     alt: Key
+    alt_l: Key
     alt_r: Key
     f1: Key
     f2: Key
