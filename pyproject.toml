@@ -17,6 +17,13 @@ dependencies = [
   "loguru>=0.7.0",
 ]
 
+[project.optional-dependencies]
+# CUDA 12 runtime libraries for faster-whisper on an NVIDIA GPU (Linux)
+cuda = [
+  "nvidia-cublas-cu12>=12.4 ; sys_platform == 'linux'",
+  "nvidia-cudnn-cu12>=9,<10 ; sys_platform == 'linux'",
+]
+
 [dependency-groups]
 dev = ["poethepoet>=0.34.0", "pytest>=9.0", "black>=25.1.0", "pyright>=1.1.400"]
 
