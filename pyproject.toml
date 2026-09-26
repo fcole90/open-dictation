@@ -57,6 +57,7 @@ reportUnnecessaryTypeIgnoreComment = "warning"
 [project.scripts]
 main = "open_dictation.main:main"
 recorder = "open_dictation.recording.main:main"
+transcribe = "open_dictation.batch_transcription.main:main"
 
 [tool.poe.tasks]
 test = "python -m pytest"
