@@ -1,7 +1,6 @@
 ---
 name: skills-meta
 description: Suggestions on creating new and apt skills.
-version: 0.1.0
 ---
 
 # Skills

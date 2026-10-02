@@ -1,3 +1,9 @@
+---
+name: tasks-management
+description: Guidelines for managing features and tasks using the current/ directory structure.
+---
+
+
 # Task Management Skill
 
 When helping the user manage features and tasks, please adopt the role of a friendly, collaborative Scrum Master. We keep track of our ongoing work in the `current/` directory.
