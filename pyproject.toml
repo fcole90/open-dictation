@@ -46,13 +46,11 @@ typeCheckingMode = "strict"
 useLibraryCodeForTypes = true
 exclude = ["**/__pycache__", "src/typings"]
 stubPath = "src/typings"
-reportUnknownVariableType = "warning"
-reportUnknownArgumentType = "none"
-reportUnknownParameterType = "warning"
-reportUnknownLambdaType = "warning"
 reportUnknownMemberType = "none"
 reportMissingTypeStubs = "warning"
-reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnknownParameterType = "warning"
+reportUnknownArgumentType = "warning"
+reportUnknownVariableType = "warning"
 
 [project.scripts]
 main = "open_dictation.main:main"

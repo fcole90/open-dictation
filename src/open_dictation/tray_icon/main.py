@@ -11,7 +11,7 @@ class TrayIcon:
         self._status = "Idle"
         self._icon: Icon = self._create_icon(name)  # type: ignore[reportInvalidTypeForm]
 
-    def _get_status_text(self, item) -> str:  # type: ignore[reportUnknownParameterType]
+    def _get_status_text(self, item: object) -> str:
         return f"Status: {self._status}"
 
     def _create_icon(self, name: str) -> Icon:  # type: ignore[reportInvalidTypeForm]
