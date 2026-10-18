@@ -78,14 +78,16 @@ uv run poe main <path_to_audio_file>
 To transcribe recordings from disk (lectures, voice notes, video files) into timestamped Markdown:
 
 ```sh
-uv sync --extra cuda   # NVIDIA GPU on Linux; plain `uv sync` for CPU
+uv sync --extra cuda   # NVIDIA GPU on Linux or Windows; plain `uv sync` for CPU
 uv run transcribe <file-or-folder> [...] --out-dir transcripts --base <folder>
 ```
 
 Each input becomes `<out-dir>/<path relative to --base>.transcript.<language>.md`, one
 `[hh:mm:ss] text` line per segment. Defaults: `--model medium --language it --device cuda
---compute-type int8_float16`; on CPU use `--device cpu --compute-type int8`. Finished transcripts are
-skipped, so an interrupted run can simply be restarted. `--dry-run` lists what would be done.
+--compute-type int8_float16`; on CPU use `--device cpu --compute-type int8`. Without the `cuda` extra,
+`--device cuda` warns and needs CUDA 12 and cuDNN 9 installed system-wide. The first GPU run takes
+longer while the GPU prepares. Finished transcripts are skipped, so an interrupted run can simply be
+restarted. `--dry-run` lists what would be done.
 
 ## Development
 
