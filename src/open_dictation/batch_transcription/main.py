@@ -56,7 +56,10 @@ def cuda_library_dirs() -> list[str]:
     """Folders of the pip-installed cuBLAS and cuDNN libraries (the `cuda` extra), if present."""
     dirs: list[str] = []
     for module in CUDA_LIBRARY_MODULES:
-        spec = importlib.util.find_spec(module)
+        try:
+            spec = importlib.util.find_spec(module)
+        except ModuleNotFoundError:  # its parent package, `nvidia`, is not installed
+            continue
         if spec is not None and spec.submodule_search_locations:
             dirs += list(spec.submodule_search_locations)
     return dirs
@@ -68,6 +71,10 @@ def ensure_cuda_libraries():
         return
     dirs = cuda_library_dirs()
     if not dirs:
+        logger.warning(
+            "The cuBLAS and cuDNN wheels are not installed: `uv sync --extra cuda` adds them;"
+            " without a system-wide CUDA, use --device cpu --compute-type int8"
+        )
         return
     env = dict(os.environ)
     current = env.get("LD_LIBRARY_PATH")

@@ -1,7 +1,12 @@
+import importlib.util
+from importlib.machinery import ModuleSpec
 from pathlib import Path
+
+import pytest
 
 from open_dictation.batch_transcription.main import (
     collect_media_files,
+    cuda_library_dirs,
     format_timestamp,
     transcript_path,
 )
@@ -43,3 +48,14 @@ def test_format_timestamp():
     assert format_timestamp(0) == "00:00:00"
     assert format_timestamp(59.9) == "00:00:59"
     assert format_timestamp(3725.4) == "01:02:05"
+
+
+def test_cuda_library_dirs_without_the_nvidia_package(monkeypatch: pytest.MonkeyPatch):
+    """Without the `cuda` extra, `nvidia` is missing and its submodules cannot be looked up."""
+
+    def missing_parent(name: str) -> ModuleSpec | None:
+        raise ModuleNotFoundError(f"No module named '{name.split('.')[0]}'")
+
+    monkeypatch.setattr(importlib.util, "find_spec", missing_parent)
+
+    assert cuda_library_dirs() == []
