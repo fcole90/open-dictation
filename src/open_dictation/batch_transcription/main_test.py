@@ -59,3 +59,24 @@ def test_cuda_library_dirs_without_the_nvidia_package(monkeypatch: pytest.Monkey
     monkeypatch.setattr(importlib.util, "find_spec", missing_parent)
 
     assert cuda_library_dirs() == []
+
+
+@pytest.mark.parametrize(("platform", "folder"), [("linux", "lib"), ("win32", "bin")])
+def test_cuda_library_dirs_per_platform(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, platform: str, folder: str
+):
+    """The wheels keep their libraries in lib/ on Linux and bin/ on Windows."""
+    for library in ("cublas", "cudnn"):
+        (tmp_path / library / folder).mkdir(parents=True)
+
+    def installed(name: str) -> ModuleSpec | None:
+        spec = ModuleSpec(name, None, is_package=True)
+        spec.submodule_search_locations = [str(tmp_path / name.split(".")[-1])]
+        return spec
+
+    monkeypatch.setattr(importlib.util, "find_spec", installed)
+
+    assert cuda_library_dirs(platform) == [
+        str(tmp_path / "cublas" / folder),
+        str(tmp_path / "cudnn" / folder),
+    ]

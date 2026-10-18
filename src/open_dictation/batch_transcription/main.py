@@ -19,7 +19,7 @@ from faster_whisper import WhisperModel  # type: ignore
 from open_dictation.logger import logger
 
 MEDIA_SUFFIXES = {".webm", ".ogg", ".opus", ".mp3", ".m4a", ".wav", ".mp4", ".mkv"}
-CUDA_LIBRARY_MODULES = ("nvidia.cublas.lib", "nvidia.cudnn.lib")
+CUDA_LIBRARY_PACKAGES = ("nvidia.cublas", "nvidia.cudnn")
 LIBRARIES_SET_FLAG = "_OPEN_DICTATION_CUDA_LIBS_SET"
 
 
@@ -52,21 +52,33 @@ def format_timestamp(seconds: float) -> str:
     return f"{whole // 3600:02d}:{whole % 3600 // 60:02d}:{whole % 60:02d}"
 
 
-def cuda_library_dirs() -> list[str]:
-    """Folders of the pip-installed cuBLAS and cuDNN libraries (the `cuda` extra), if present."""
+def cuda_library_dirs(platform: str = sys.platform) -> list[str]:
+    """Folders of the pip-installed cuBLAS and cuDNN libraries (the `cuda` extra), if present.
+
+    The wheels keep their shared libraries in `lib/` on Linux and their DLLs in `bin/` on Windows.
+    """
+    folder = "bin" if platform == "win32" else "lib"
     dirs: list[str] = []
-    for module in CUDA_LIBRARY_MODULES:
+    for package in CUDA_LIBRARY_PACKAGES:
         try:
-            spec = importlib.util.find_spec(module)
+            spec = importlib.util.find_spec(package)
         except ModuleNotFoundError:  # its parent package, `nvidia`, is not installed
             continue
         if spec is not None and spec.submodule_search_locations:
-            dirs += list(spec.submodule_search_locations)
+            dirs += [
+                str(Path(location) / folder)
+                for location in spec.submodule_search_locations
+                if (Path(location) / folder).is_dir()
+            ]
     return dirs
 
 
 def ensure_cuda_libraries():
-    """Re-execute with the CUDA wheel libraries on LD_LIBRARY_PATH, which is only read at start."""
+    """Make the CUDA wheel libraries findable before faster-whisper loads them.
+
+    Windows looks DLLs up in the folders added at run time and on PATH; Linux reads LD_LIBRARY_PATH
+    only at start, so the process re-executes itself with it set.
+    """
     if os.environ.get(LIBRARIES_SET_FLAG):
         return
     dirs = cuda_library_dirs()
@@ -75,6 +87,12 @@ def ensure_cuda_libraries():
             "The cuBLAS and cuDNN wheels are not installed: `uv sync --extra cuda` adds them;"
             " without a system-wide CUDA, use --device cpu --compute-type int8"
         )
+        return
+    if sys.platform == "win32":
+        for folder in dirs:
+            os.add_dll_directory(folder)
+        os.environ["PATH"] = os.pathsep.join([*dirs, os.environ.get("PATH", "")])
+        os.environ[LIBRARIES_SET_FLAG] = "1"
         return
     env = dict(os.environ)
     current = env.get("LD_LIBRARY_PATH")
